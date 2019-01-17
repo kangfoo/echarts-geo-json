@@ -66,7 +66,8 @@ let loopHandle = async (adcode) => {
             }
         }
         geo.features = features;
-        const encodeGeo = parser.encode(geo);
+        // const encodeGeo = parser.encode(geo);
+        const encodeGeo = geo;
         fs.writeFile(`json/${adcode}.json`, JSON.stringify(encodeGeo), (err) => {
             if (err) {
                 return console.log(err);
