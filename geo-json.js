@@ -1,6 +1,7 @@
 const fs = require('fs');
 const axios = require('axios');
 const parser = require('./lib/parseGeoJson.js');
+const {gcj02tobd} = require('./lib/util');
 
 const keys = ['3387f2aae76ebd4f915de5ade19634dc', '806178332e93277d48d196c6981d3598', '35ea21e11d1a80d9ef41014a1b8513b4',
     '27b4b0aeb8dd4c32614f13d3e3fd866f', '09ee92217380c74c07119fbc31191078', '188237b34dde0db2acdb536db5763df9',
@@ -30,11 +31,14 @@ let parseToFeature = (district) => {
     feature.type = 'Feature';
     feature.properties = {};
     feature.properties.name = district.name;
-    feature.properties.cp = district.center.split(',').map(item => Number(item));
+    // feature.properties.cp = district.center.split(',').map(item => Number(item));
+    feature.properties.cp = gcj02tobd(...district.center.split(','));
 
     let polylines = district.polyline.split('|');
     let coordinates = [];
-    let coordinateGroups = polylines.map(polyline => polyline.split(';').map(pointStr => pointStr.split(',').map(item => Math.floor(item * 1024) / 1024)));
+    let coordinateGroups = polylines.map(polyline => polyline.split(';').map(pointStr => {
+      return gcj02tobd(...pointStr.split(','));
+    }));
     if (coordinateGroups.length > 1) {
         coordinateGroups.forEach(item => {
             coordinates.push([item]);
@@ -67,8 +71,7 @@ let loopHandle = async (adcode) => {
         }
         geo.features = features;
         // const encodeGeo = parser.encode(geo);
-        const encodeGeo = geo;
-        fs.writeFile(`json/${adcode}.json`, JSON.stringify(encodeGeo), (err) => {
+        fs.writeFile(`json/${adcode}.json`, JSON.stringify(geo), (err) => {
             if (err) {
                 return console.log(err);
             }
